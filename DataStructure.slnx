@@ -5,4 +5,6 @@
   <Project Path="Array/Array.vcxproj" Id="99c10123-37bc-4a65-8adb-de34e9e567e0" />
   <Project Path="List/List.vcxproj" Id="318f4975-5f4c-453e-a2ca-8e5be1986d6a" />
   <Project Path="SingleLinkedList/SingleLinkedList.vcxproj" Id="2937cd40-dbb6-41d6-baf1-04e9e3837842" />
+  <Project Path="Stack/Stack.vcxproj" Id="8a1a87d5-34b2-4163-bbf1-b5fefed7b98d" />
+  <Project Path="StackMaze/StackMaze.vcxproj" Id="5e7381ed-0f05-421e-9731-22b9a6a3720c" />
 </Solution>
