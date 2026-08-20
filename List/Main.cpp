@@ -11,7 +11,7 @@ int main()
 	characterList.PushBack("Archer");
 
 	// 복사 생성.
-	List<std::string> copiedList(characterList);
+	List<std::string> copiedList(characterList); 
 	copiedList[0] = "BlackKnight";
 
 	// 이동 생성.
@@ -21,5 +21,11 @@ int main()
 	for (const auto& value : characterList)
 	{
 		std::cout << value << "\n";
+	}
+
+	// 이터레이터 기반 루프 순회.
+	for (auto iterator = characterList.begin(); iterator != characterList.end(); ++iterator)
+	{
+		std::cout << (*iterator) << "\n";
 	}
 }

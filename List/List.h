@@ -3,12 +3,93 @@
 #include <iostream>
 #include <cassert>
 
-// 템플릿 동적 배열 클래스
-// 템플릿은 왜 헤더와 cpp로 구분해서 구현하지 않나요
-// 템플릿은 추론(해석) 하는 시점이 컴파일 시간이기 때문.
+// 리스트 이터레이터.
+template<typename T>
+class ListIterator
+{
+public:
+	// 타입 재정의 (편의 목적).
+	using PointerType = T*;
+	using ReferenceType = T&;
+
+public:
+	ListIterator(PointerType pointer)
+		: pointer(pointer)
+	{
+	}
+
+	// 연산자 오버로딩 (포인터 관련).
+	ListIterator& operator++()
+	{
+		++pointer;
+		return *this;
+	}
+
+	ListIterator& operator++(int)
+	{
+		// 임시 저장.
+		ListIterator temp = *this;
+		++(*this);
+		return temp;
+	}
+
+	ListIterator& operator--()
+	{
+		--pointer;
+		return *this;
+	}
+
+	ListIterator& operator--(int)
+	{
+		// 임시 저장.
+		ListIterator temp = *this;
+		--(*this);
+		return temp;
+	}
+
+	ReferenceType operator[](int index) const
+	{
+		return *(pointer + index);
+	}
+
+	PointerType operator->() const
+	{
+		return pointer;
+	}
+
+	ReferenceType operator*() const
+	{
+		return *pointer;
+	}
+
+	// 비교 연산자 오버로딩.
+	bool operator==(const ListIterator& other) const
+	{
+		return pointer == other.pointer;
+	}
+
+	bool operator!=(const ListIterator& other) const
+	{
+		//return pointer != other.pointer;
+		return !(*this == other);
+	}
+
+private:
+	PointerType pointer = nullptr;
+};
+
+
+// 템플릿 동적 배열 클래스.
+// 템플릿은 왜 header와 cpp로 구분해서 구현하지 않나요?
+// 템플릿은 추론(해석) 시점이 컴파일 시간이기 때문.
 template<typename T>
 class List
 {
+public:
+	// 이터레이터 설정.
+	using Iterator = ListIterator<T>;
+	using ConstIterator = ListIterator<const T>;
+
 public:
 	List()
 	{
@@ -18,13 +99,13 @@ public:
 
 	~List()
 	{
-		delete[]data;
+		delete[] data;
 		data = nullptr;
 	}
 
 	// 복사 생성자.
 	List(const List& other)
-		:size(other.size),capacity(other.capacity)
+		: size(other.size), capacity(other.capacity)
 	{
 		// #1. 저장 공간 할당.
 		if (other.capacity > 0)
@@ -33,7 +114,7 @@ public:
 		}
 
 		// 저장된 데이터 복사.
-		for (int ix = 0;ix < size;++ix)
+		for (int ix = 0; ix < size; ++ix)
 		{
 			data[ix] = other.data[ix];
 		}
@@ -42,7 +123,7 @@ public:
 	// 복사 대입 연산자 오버로딩.
 	List& operator=(const List& other)
 	{
-		// 예외처리(같은 객체인지 확인).
+		// 예외처리 (같은 객체인지 확인).
 		if (this == &other)
 		{
 			return *this;
@@ -55,7 +136,8 @@ public:
 		{
 			newData = new T[other.capacity];
 
-			for (int ix = 0;ix < other.size;++ix)
+			// 값 복사.
+			for (int ix = 0; ix < other.size; ++ix)
 			{
 				newData[ix] = other.data[ix];
 			}
@@ -74,7 +156,9 @@ public:
 
 	// 이동 생성자.
 	List(List&& other)
-		:size(other.size), capacity(other.capacity), data(other.data)
+		: size(other.size),
+		capacity(other.capacity),
+		data(other.data)
 	{
 		// other 정리.
 		other.data = nullptr;
@@ -83,9 +167,9 @@ public:
 	}
 
 	// 이동 대입 연산자.
-	List& operator=(const List&& other)
+	List& operator=(List&& other)
 	{
-		// 예외처리.
+		// 예외 처리.
 		if (this == &other)
 		{
 			return *this;
@@ -100,9 +184,9 @@ public:
 		capacity = other.capacity;
 
 		// other 값 정리.
+		other.data = nullptr;
 		other.size = 0;
 		other.capacity = 0;
-		other.data = nullptr;
 
 		return *this;
 	}
@@ -113,7 +197,8 @@ public:
 		// #1. 저장공간이 가득찼으면 재할당.
 		if (size == capacity)
 		{
-			int newCapacity = capacity == 0 ? defaultSize : capacity * scale;
+			int newCapacity = capacity == 0 ?
+				defaultSize : capacity * scale;
 			ReAllocate(newCapacity);
 		}
 
@@ -127,11 +212,12 @@ public:
 		// #1. 저장공간이 가득찼으면 재할당.
 		if (size == capacity)
 		{
-			int newCapacity = capacity == 0 ? defaultSize : capacity * scale;
+			int newCapacity = capacity == 0 ?
+				defaultSize : capacity * scale;
 			ReAllocate(newCapacity);
 		}
 
-		// #2. 값 추가.
+		// #2. 값추가.
 		data[size] = std::move(value);
 		++size;
 	}
@@ -139,6 +225,7 @@ public:
 	// 요소 제거 함수.
 	void Erase(int index)
 	{
+		// 범위 검사.
 		if (index < 0 || index >= size)
 		{
 			// 조용한 예외처리.
@@ -146,8 +233,8 @@ public:
 			return;
 		}
 
-		// 제거할 인덱스 뒤ㅢ 값을 앞으로 이동처리.
-		for (int ix = index;ix < size-1;++ix)
+		// 제거할 인덱스 뒤의 값을 앞으로 이동처리.
+		for (int ix = index; ix < size - 1; ++ix)
 		{
 			data[ix] = std::move(data[ix + 1]);
 		}
@@ -160,13 +247,13 @@ public:
 	// 인덱스로 접근 가능하도록 연산자 오버로딩.
 	T& operator[](size_t index)
 	{
-		assert(index = size && "index should be less than size.");
+		assert(index < size && "index should be less than size.");
 		return data[index];
 	}
 
-	const T& operator[](size_t index)const
+	const T& operator[](size_t index) const
 	{
-		assert(index = size && "index should be less than size.");
+		assert(index < size && "index should be less than size.");
 		return data[index];
 	}
 
@@ -180,24 +267,44 @@ public:
 	bool Empty() const { return size == 0; }
 
 	// 범위 기반 루프 사용 가능하도록 추가.
-	T* begin() const { return data; }
-	T* end()const { return data + size; }
+	//T* begin() const { return data; }
+	//T* end() const { return data + size; }
+
+	Iterator begin()
+	{
+		return Iterator(data);
+	}
+
+	Iterator end()
+	{
+		return Iterator(data ? data + size : nullptr);
+	}
+
+	ConstIterator begin() const
+	{
+		return ConstIterator(data);
+	}
+
+	ConstIterator end() const
+	{
+		return ConstIterator(data ? data + size : nullptr);
+	}
 
 private:
 	// 재할당 메소드.
 	void ReAllocate(int newCapacity)
 	{
 		// #1. 새로운 공간 할당.
-		T* newBlock = new T[newCapacity] {};
+		T* newBlock = new T[newCapacity]{};
 
 		// #2. 기존 데이터 가져와서 저장.
-		for (int ix = 0;ix < size;++ix)
+		for (int ix = 0; ix < size; ++ix)
 		{
 			// data는 폐기 예정이기 때문에 move로 처리.
 			newBlock[ix] = std::move(data[ix]);
 		}
 
-		// #3. 기존 저장 공간 폐기.
+		// #3. 기존 저장공간 폐기.
 		delete[] data;
 
 		// #4. 새로운 저장공간으로 data 업데이트.
@@ -207,12 +314,11 @@ private:
 		capacity = newCapacity;
 	}
 
-
 private:
-	// 내부에서 관리하는 배열
+	// 내부에서 관리하는 배열(메모리 주소).
 	T* data = nullptr;
 
-	// 배열에 저장된 요소의 수
+	// 배열에 저장된 요소의 수.
 	int size = 0;
 
 	// 저장공간 크기.
@@ -221,6 +327,6 @@ private:
 	// 상수 (초기 저장공간의 크기 값).
 	const int defaultSize = 2;
 
-	// 상수(크기가 증가하는 배수).
+	// 상수 (크기가 증가하는 배수).
 	const int scale = 2;
 };
