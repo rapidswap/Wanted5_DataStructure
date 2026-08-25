@@ -33,8 +33,13 @@ private:
 
 	~Node()
 	{
-		SafeDelete(left);
-		SafeDelete(right);
+		delete left;
+		left = nullptr;
+
+		delete right;
+		right = nullptr;
+		//SafeDelete(left);
+		//SafeDelete(right);
 	}
 
 	// 복사 방지.
